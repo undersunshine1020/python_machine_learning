@@ -9,6 +9,7 @@ from perceptron import Perceptron
 from perceptron import AdalineGD
 from perceptron import AdalineSGD
 from perceptron import LiHangGD
+from perceptron import LiHangGDDuality
 from matplotlib.colors import ListedColormap
 
 
@@ -49,30 +50,64 @@ if __name__ == "__main__":
     plt.xlabel('petal length')
     plt.ylabel('sepal length')
     plt.legend(loc='upper left')
+    plt.title('samples')
     plt.show()
 
-    ###########################Perceptron#########################
+    # ###########################Perceptron#########################
+    plt.figure(figsize=(10, 4))
+    plt.subplot(121)
     ppn = Perceptron(eta=0.1, n_iter=10)
     ppn.fit(X, y)
-    plt.plot(range(1, len(ppn.errors_) + 1), ppn.errors_, marker='o')
-    plt.xlabel('Epochs')
-    plt.ylabel('Number of misclassifications')
-    plt.show()
-
     plot_decision_regions(X, y, classifier=ppn)
     plt.xlabel('sepal length [cm]')
     plt.ylabel('petal length [cm]')
     plt.legend(loc='upper left')
-    plt.show()
+    plt.title('Perceptron Method')
 
-    ###########################LiHangGD#########################
-    ppn = LiHangGD(eta=0.1, n_iter=10)
-    ppn.fit(X, y)
+    plt.subplot(122)
     plt.plot(range(1, len(ppn.errors_) + 1), ppn.errors_, marker='o')
     plt.xlabel('Epochs')
     plt.ylabel('Number of misclassifications')
+    plt.title('Perceptron Method')
     plt.show()
 
+    # ##########################LiHangGD#########################
+    plt.figure(figsize=(10, 4))
+    plt.subplot(121)
+    LiHang = LiHangGD(eta=0.1)
+    LiHang.fit(X, y)
+    plot_decision_regions(X, y, classifier=LiHang)
+    plt.xlabel('sepal length [cm]')
+    plt.ylabel('petal length [cm]')
+    plt.legend(loc='upper left')
+    plt.title('LiHangGD Method')
+    # plt.show()
+    plt.subplot(122)
+    plt.plot(range(1, len(LiHang.errors_) + 1), LiHang.errors_, marker='o')
+    plt.xlabel('Epochs')
+    plt.ylabel('Number of misclassifications')
+    plt.title('LiHangGD Method')
+    plt.show()
+
+    # ##########################LiHangGDDuality#########################
+    plt.figure(figsize=(10, 4))
+    plt.subplot(121)
+    LiHang_D = LiHangGDDuality(eta=0.1)
+    LiHang_D.fit(X, y)
+    plot_decision_regions(X, y, classifier=LiHang_D)
+    plt.xlabel('sepal length [cm]')
+    plt.ylabel('petal length [cm]')
+    plt.legend(loc='upper left')
+    plt.title('LiHangGDDuality Method')
+    # plt.show()
+    plt.subplot(122)
+    plt.plot(range(1, len(LiHang_D.errors_) + 1), LiHang_D.errors_, marker='o')
+    plt.xlabel('Epochs')
+    plt.ylabel('Number of misclassifications')
+    plt.title('LiHangGDDuality Method')
+    plt.show()
+
+    # #########################AdalineGD#########################
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(8, 4))
     ada1 = AdalineGD(n_iter=10, eta=0.01).fit(X, y)
     ax[0].plot(range(1, len(ada1.cost_) + 1),
@@ -88,6 +123,7 @@ if __name__ == "__main__":
     ax[1].set_title('Adaline - Learning rate 0.0001')
     plt.show()
 
+    # ##########################AdalineGD#########################
     X_std = np.copy(X)
     X_std[:, 0] = (X[:, 0] - X[:, 0].mean()) / X[:, 0].std()
     X_std[:, 1] = (X[:, 1] - X[:, 1].mean()) / X[:, 1].std()
@@ -101,14 +137,17 @@ if __name__ == "__main__":
     plt.title('Adaline - Gradient Descent')
     plt.xlabel('sepal length [standardized]')
     plt.ylabel('petal length [standardized]')
+    plt.title('AdalineGD')
     plt.legend(loc='upper left')
     # plt.show()
     plt.subplot(122)
     plt.plot(range(1, len(ada.cost_) + 1), ada.cost_, marker='o')
     plt.xlabel('Epochs')
     plt.ylabel('Sum-squared-error')
+    plt.title('AdalineGD')
     plt.show()
 
+    # ##########################AdalineSGD#########################
     plt.figure(figsize=(10, 4))
     plt.subplot(121)
     ada = AdalineSGD(n_iter=15, eta=0.01, random_state=1)
@@ -118,9 +157,11 @@ if __name__ == "__main__":
     plt.xlabel('sepal length [standardized]')
     plt.ylabel('petal length [standardized]')
     plt.legend(loc='upper left')
+    plt.title('AdalineSGD')
     # plt.show()
     plt.subplot(122)
     plt.plot(range(1, len(ada.cost_) + 1), ada.cost_, marker='o')
     plt.xlabel('Epochs')
     plt.ylabel('Average Cost')
+    plt.title('AdalineSGD')
     plt.show()

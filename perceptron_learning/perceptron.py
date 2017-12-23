@@ -240,7 +240,7 @@ class LiHangGD(object):
         Number of misclassifications in every epoch.
     """
 
-    def __init__(self, eta=0.01, n_iter=10):
+    def __init__(self, eta=0.01, n_iter=100):
         self.eta = eta
         self.n_iter = n_iter
 
@@ -258,20 +258,79 @@ class LiHangGD(object):
         -------
         self : object
         """
-        self.w_ = np.zeros(1 + X.shape[1])
+        self.w_ = np.zeros([1 + X.shape[1], 1])
         self.errors_ = []
-        for _ in range(self.n_iter):
+        for i in range(self.n_iter):
             errors = 0
             for xi, target in zip(X, y):
                 update = self.eta * target
-                self.w_[1:] += update * xi
-                self.w_[0] += update
-                errors += int(update != 0.0)
-            self.errors_.append(errors)
-            # target = [self.predict(1)] + y
-            # update = self.eta * (target - self.predict(X))
-            # self.w_[1:] += update * X
-            # errors = sum(int(update != 0.0))
+                if target * self.predict(xi) <= 0:
+                    self.w_[1:] += update * xi.reshape([-1, 1])
+                    self.w_[0] += update
+                    errors = sum(y.reshape([-1, 1]) * np.dot(X.reshape([-1, 2]), self.w_[1:]) < 0)  # mis-classification
+                    self.errors_.append(errors)
+                while errors == 0 and i > 8:
+                    return self
+
+    def net_input(self, X):
+        """Calculate net input"""
+        return np.dot(X, self.w_[1:]) + self.w_[0]
+
+    def predict(self, X):
+        """Return class label after unit step"""
+        return np.where(self.net_input(X) >= 0.0, [1], [-1])
+
+
+class LiHangGDDuality(object):
+    """LiHangGD_duality NEuron classifier.
+    Parameters
+    eta : float
+        Learning rate (between 0.0 and 1.0)
+    n_iter : int
+        Passes over the training dataset.
+    Attributes
+    -----------
+    w_ : 1d-array
+        Weights after fitting.
+    errors_ : list
+        Number of misclassifications in every epoch.
+    """
+
+    def __init__(self, eta=0.01, n_iter=100):
+        self.eta = eta
+        self.n_iter = n_iter
+
+    def fit(self, X, y):
+        """Fit training data.
+        Parameters
+        ----------
+        X : {array-like}, shape = [n_samples, n_features]
+            Training vectors, where n_samples
+            is the number of samples and
+            n_features is the number of features.
+        y : array-like, shape = [n_samples]
+            Target values.
+        Returns
+        -------
+        self : object
+        """
+        self.w_ = np.zeros([1 + X.shape[1], 1])
+        self.errors_ = []
+        flag = True
+        gram_matrix = np.dot(X, X.T)
+        n_samples = X.shape[0]
+        alpha = np.zeros([X.shape[0], 1])
+        while flag:
+            flag = False
+            for i in range(n_samples):
+                ans = sum(gram_matrix[i][:].reshape([-1, 1]) * y.reshape([-1, 1]) * alpha) + self.w_[0]
+                if y[i] * ans <= 0:
+                    flag = True
+                    alpha[i] += self.eta
+                    self.w_[0] += self.eta * self.w_[0]
+                    self.w_[1:] = np.dot(X.T, alpha * y.reshape([-1, 1]))
+                    errors = sum(y.reshape([-1, 1]) * np.dot(X.reshape([-1, 2]), self.w_[1:]) < 0)
+                    self.errors_.append(errors)
         return self
 
     def net_input(self, X):
